@@ -22,3 +22,15 @@ infrastructure itself. I'm sacrificing speed for depth on purpose.
 
 **Revisit when:** In a team/production context I would default to
 registry modules and review their source instead.
+
+
+## ADR-002 - State locking with the S3 lockfile instead of DynamoDB
+
+**Date:** 2026-07-27
+
+Two applies running at the same time against one state file can corrupt it, so the backend needs a lock. 
+The classic setup adds a DynamoDB table that exists only to hold that lock. Since Terraform 1.10 the S3 backend
+can lock natively with a lockfile (use_lockfile = true), no extra table.
+
+I'm going with the lockfile: one less resource to build, pay for and break, and the lock lives in the same bucket as the state itself. The trade-off is that it needs Terraform 1.10 or newer, and that most older tutorials and teams still run the DynamoDB pattern, so I want to
+recognize that setup when I see it. On a team pinned to older Terraform, DynamoDB would be my fallback.
