@@ -24,6 +24,9 @@ infrastructure itself. I'm sacrificing speed for depth on purpose.
 registry modules and review their source instead.
 
 
+
+
+
 ## ADR-002 - State locking with the S3 lockfile instead of DynamoDB
 
 **Date:** 2026-07-27
