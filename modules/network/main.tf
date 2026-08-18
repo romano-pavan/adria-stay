@@ -65,3 +65,93 @@ resource "aws_subnet" "data_b" {
     Name = "${var.name_prefix}-data-b"
   }
 }
+
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+  tags = {
+    Name = "${var.name_prefix}-igw"
+  }
+}
+
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  tags = {
+    Name = "${var.name_prefix}-nat-eip"
+  }
+}
+
+resource "aws_nat_gateway" "this" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public_a.id
+  tags = {
+    Name = "${var.name_prefix}-nat"
+  }
+
+  depends_on = [aws_internet_gateway.this]
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+  tags = {
+    Name = "${var.name_prefix}-public-rt"
+  }
+
+}
+
+resource "aws_route_table" "private_app" {
+  vpc_id = aws_vpc.this.id
+  tags = {
+    Name = "${var.name_prefix}-app-rt"
+  }
+}
+
+resource "aws_route_table" "private_data" {
+  vpc_id = aws_vpc.this.id
+  tags = {
+    Name = "${var.name_prefix}-data-rt"
+  }
+
+}
+
+resource "aws_route" "public" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.this.id 
+}
+
+resource "aws_route" "private_app_nat" {
+  route_table_id         = aws_route_table.private_app.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.this.id
+}
+
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+
+}
+
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "app_a" {
+  subnet_id      = aws_subnet.app_a.id
+  route_table_id = aws_route_table.private_app.id
+}
+
+resource "aws_route_table_association" "app_b" {
+  subnet_id      = aws_subnet.app_b.id
+  route_table_id = aws_route_table.private_app.id
+}
+
+resource "aws_route_table_association" "data_a" {
+  subnet_id      = aws_subnet.data_a.id
+  route_table_id = aws_route_table.private_data.id
+}
+
+resource "aws_route_table_association" "data_b" {
+  subnet_id      = aws_subnet.data_b.id
+  route_table_id = aws_route_table.private_data.id
+}
