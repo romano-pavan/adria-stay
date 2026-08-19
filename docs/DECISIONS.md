@@ -86,3 +86,20 @@ The data subnets get their own route table with no default route at all
 only the implicit local route. RDS is a managed service and AWS patches it
 from the inside, so the database tier has no reason to reach the internet.
 Fewer routes, smaller blast radius.
+
+
+
+## ADR-005 - The load balancer listens on HTTP only in dev
+
+**Date:** 2026-08-19
+
+Serving the site over HTTPS needs a TLS certificate, and AWS Certificate
+Manager only issues certificates for domains you can prove you own. This
+project has no registered domain, so there is nothing to issue a
+certificate against. The load balancer listens on port 80.
+
+I'm recording this as a known gap rather than a finished design. In
+production the stack would have a domain, a certificate from ACM, a
+listener on 443, and a listener on 80 whose only job is to redirect
+everything to 443. None of that changes the application or the
+architecture, so it stays a certificate problem, not a design problem.
