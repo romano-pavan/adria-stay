@@ -10,4 +10,9 @@ module "network" {
   data_b_cidr   = "10.0.21.0/24"
 }
 
-
+module "compute" {
+  source           = "../../modules/compute"
+  name_prefix      = "adria-stay-dev"
+  vpc_id           = module.network.vpc_id
+  alb_ingress_cidr = "0.0.0.0/0"
+}
