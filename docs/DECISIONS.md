@@ -103,3 +103,29 @@ production the stack would have a domain, a certificate from ACM, a
 listener on 443, and a listener on 80 whose only job is to redirect
 everything to 443. None of that changes the application or the
 architecture, so it stays a certificate problem, not a design problem.
+
+
+
+## ADR-006 - Access instances through SSM Session Manager instead of SSH
+
+**Date:** 2026-08-19
+
+The app instances live in private subnets and still need to be reachable
+for troubleshooting. The classic answer is SSH with a key pair, which
+also means a bastion host in a public subnet, an inbound rule on port 22,
+and a private key that has to live somewhere. SSM Session Manager needs
+none of that: an agent on the instance opens an outbound connection to
+the SSM service, and sessions are relayed through the AWS API. No open
+port, no key pair, no bastion to run and patch. Who gets in is decided by
+IAM, the same way as everything else, so it lands in the same audit trail
+and sessions can be logged.
+
+The trade-off is a new dependency. Access now relies on the agent running
+and on the instance having a path to the SSM endpoints, which in this
+build means through the NAT gateway. If the NAT is gone, so is my way in,
+while a bastion with SSH would still be reachable. The fix for production
+is VPC endpoints for SSM, which removes the NAT from the access path
+entirely. I'm accepting the dependency in dev because losing shell access
+to a throwaway environment costs nothing.
+
+
