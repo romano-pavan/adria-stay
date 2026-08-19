@@ -12,3 +12,9 @@ variable "alb_ingress_cidr" {
   type        = string
   description = "ingress CIDR block "
 }
+
+variable "instance_type" {
+  type        = string
+  default     = "t3.micro"
+  description = "ec2 instance type"
+}
