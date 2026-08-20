@@ -129,3 +129,31 @@ entirely. I'm accepting the dependency in dev because losing shell access
 to a throwaway environment costs nothing.
 
 
+## ADR-007 - Two instances in dev, and the ASG judges health by the load balancer
+
+**Date:** 2026-08-20
+
+The Auto Scaling group runs a minimum of two instances, one per
+availability zone, with a ceiling of four. One instance would be cheaper,
+but it would also make the whole point of this layer invisible. With a
+single target I cannot show traffic being distributed, I cannot lose a
+zone without losing the site, and a failed instance means downtime
+instead of a rolling replacement. Two t3.micro instances in a dev
+environment that gets destroyed after every session cost cents.
+
+By default an Auto Scaling group only looks at the EC2 status checks,
+which say whether the virtual machine and its operating system are
+alive. That is not the same question the users are asking. If nginx dies
+while the box keeps running, the load balancer stops sending traffic to
+that instance but the group happily keeps it, so I end up paying for a
+target nobody uses and nobody replaces. Setting the health check type to
+ELB makes the group defer to the target group's verdict, which is the
+one that reflects whether the application actually answers.
+
+The cost of that choice is a grace period. Instances install nginx at
+boot, so the group has to wait before it starts judging them, and I set
+that to 300 seconds. A genuinely broken instance therefore survives its
+first five minutes. Too short and I get a replacement loop where every
+new instance is killed before it finishes booting; too long and real
+failures linger. In production the right fix is a pre-baked image so
+there is nothing to install at boot and the grace period can shrink.
