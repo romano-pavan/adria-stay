@@ -17,3 +17,8 @@ output "data_subnet_ids" {
   description = "IDs of the private data subnet"
   value       = module.network.data_subnet_ids
 }
+
+output "alb_dns_name" {
+  value = module.compute.alb_dns_name
+
+}

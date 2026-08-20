@@ -17,3 +17,8 @@ output "launch_template_id" {
 output "launch_template_latest_version" {
   value = aws_launch_template.app.latest_version
 }
+
+output "alb_dns_name" {
+  value       = aws_lb.this.dns_name
+  description = "Application load balancer DNS"
+}

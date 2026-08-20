@@ -11,8 +11,11 @@ module "network" {
 }
 
 module "compute" {
-  source           = "../../modules/compute"
-  name_prefix      = "adria-stay-dev"
-  vpc_id           = module.network.vpc_id
-  alb_ingress_cidr = "0.0.0.0/0"
+  source            = "../../modules/compute"
+  name_prefix       = "adria-stay-dev"
+  vpc_id            = module.network.vpc_id
+  alb_ingress_cidr  = "0.0.0.0/0"
+  public_subnet_ids = module.network.public_subnet_ids
+  app_subnet_ids    = module.network.app_subnet_ids
 }
+
