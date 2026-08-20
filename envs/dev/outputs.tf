@@ -22,3 +22,11 @@ output "alb_dns_name" {
   value = module.compute.alb_dns_name
 
 }
+
+output "db_endpoint" {
+  value = module.data.db_endpoint
+}
+
+output "cdn_domain_name" {
+  value = module.edge.cdn_domain_name
+}

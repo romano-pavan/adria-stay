@@ -19,3 +19,16 @@ module "compute" {
   app_subnet_ids    = module.network.app_subnet_ids
 }
 
+module "data" {
+  source                = "../../modules/data"
+  name_prefix           = "adria-stay-dev"
+  vpc_id                = module.network.vpc_id
+  data_subnet_ids       = module.network.data_subnet_ids
+  app_security_group_id = module.compute.app_security_group_id
+}
+
+module "edge" {
+  source        = "../../modules/edge"
+  name_prefix   = "adria-stay-dev"
+  bucket_suffix = "rp"
+}
