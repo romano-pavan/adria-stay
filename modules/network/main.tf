@@ -155,3 +155,8 @@ resource "aws_route_table_association" "data_b" {
   subnet_id      = aws_subnet.data_b.id
   route_table_id = aws_route_table.private_data.id
 }
+
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+}

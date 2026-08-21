@@ -61,11 +61,12 @@ resource "aws_cloudfront_distribution" "assets" {
     origin_access_control_id = aws_cloudfront_origin_access_control.assets.id
   }
   default_cache_behavior {
-    target_origin_id       = "s3-assets"
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-    cache_policy_id        = data.aws_cloudfront_cache_policy.optimized.id
+    target_origin_id           = "s3-assets"
+    viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.security.id
+    cache_policy_id            = data.aws_cloudfront_cache_policy.optimized.id
   }
 
   viewer_certificate {
@@ -98,9 +99,39 @@ data "aws_iam_policy_document" "assets" {
 
 }
 
+data "aws_cloudfront_response_headers_policy" "security" {
+  name = "Managed-SecurityHeadersPolicy"
+
+}
+
 resource "aws_s3_bucket_policy" "assets" {
   bucket = aws_s3_bucket.assets.id
   policy = data.aws_iam_policy_document.assets.json
 
 }
 
+resource "aws_s3_bucket_versioning" "assets" {
+  bucket = aws_s3_bucket.assets.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "assets" {
+  bucket = aws_s3_bucket.assets.id
+  rule {
+    id = "expire-noncurrent"
+    filter {}
+    status = "Enabled"
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+
+    }
+
+
+  }
+}

@@ -97,6 +97,22 @@ resource "aws_launch_template" "app" {
   image_id               = data.aws_ami.al2023.id
   instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.app.id]
+  metadata_options {
+    http_tokens                 = "required"
+    http_endpoint               = "enabled"
+    http_put_response_hop_limit = 1
+
+  }
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      encrypted             = true
+      volume_size           = 8
+      volume_type           = "gp3"
+      delete_on_termination = true
+    }
+  }
+
   iam_instance_profile {
 
     name = aws_iam_instance_profile.app.name
@@ -131,6 +147,7 @@ resource "aws_launch_template" "app" {
   }
 }
 
+
 resource "aws_lb_target_group" "app" {
   name        = "${var.name_prefix}-app-tg"
   port        = 80
@@ -150,11 +167,12 @@ resource "aws_lb_target_group" "app" {
 }
 
 resource "aws_lb" "this" {
-  name               = "${var.name_prefix}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnet_ids
+  name                       = "${var.name_prefix}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = var.public_subnet_ids
+  drop_invalid_header_fields = true
   tags = {
     Name = "${var.name_prefix}-alb"
   }
@@ -184,6 +202,7 @@ resource "aws_autoscaling_group" "app" {
   launch_template {
     id      = aws_launch_template.app.id
     version = aws_launch_template.app.latest_version
+
   }
   tag {
     value               = "${var.name_prefix}-asg"
