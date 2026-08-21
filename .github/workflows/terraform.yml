@@ -53,12 +53,15 @@ jobs:
           tflint --init
           tflint --recursive
 
-      - name: Run checkov
-        uses: bridgecrewio/checkov-action@master
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          directory: .
-          quiet: true
-          soft_fail: false
+          python-version: "3.12"
+
+      - name: Run checkov
+        run: |
+          pip install checkov==3.3.13
+          checkov -d . --compact --quiet
 
       - name: Terraform plan
         id: plan
