@@ -253,4 +253,53 @@ looking at where the traffic actually comes from. I left the suppression
 in place with that explanation, because the next person to run this scan
 deserves to know it was examined rather than ignored.
 
+**Update, 2026-08-21.** The inline exceptions turned out not to survive the
+pipeline. Locally every `#checkov:skip=` comment inside `modules/` is
+honoured; on the runner only the five in `bootstrap/` are, and the other
+twenty-seven come back as failures. Same version, same command, same files,
+and the same total number of checks in both places, so the difference is not
+in the rules but in how the parser reaches a resource that is only ever
+evaluated through a `module` call. A gate that reports differently on two
+machines is not a gate, so the exception list moved into `.checkov.yaml` at
+the root of the repository, where it is read the same way everywhere.
 
+The inline comments stay. They are the only place that records why this
+particular bucket does not need access logging, or why that security group
+is allowed to be open, and the configuration file has no room for that
+context. The file exists for deterministic behaviour in continuous
+integration; the comment next to the resource exists for the person reading
+the code. Neither replaces the other.
+
+The cost is real and worth stating plainly. A skip in the configuration file
+is global. Those twenty-seven rules are now off for the whole repository, so
+a future resource that genuinely violates one of them will pass without a
+word - something inline skips did not do, because they only silenced the
+resource they were attached to. The list is therefore treated as something
+to shrink rather than as settled: every item fixed properly in v2 - access
+logging, WAF, HTTPS, multi-AZ - comes back out of the file.
+
+
+## ADR-011 - CI authenticates with OIDC and is only allowed to plan
+
+**Date:** 2026-08-21
+
+The pipeline needs AWS credentials. The usual answer is an IAM user with
+an access key stored in GitHub Secrets, and that key never expires, exists
+in two places, and stays valid until someone remembers to revoke it.
+Instead the workflow uses OIDC federation: GitHub issues a short-lived
+signed token for each run, AWS trusts GitHub as an issuer, and a role
+exchanges that token for credentials that last an hour. The only thing
+stored in GitHub is the role ARN, which is not a secret.
+
+The control that makes this safe is the condition on the sub claim in the
+trust policy, restricting it to this one repository. Without it any
+repository on GitHub could assume the role, which is the most common way
+this setup gets misconfigured.
+
+The role can read the whole account and read and write the state bucket,
+because plan needs to refresh state and acquire a lock. It cannot change
+infrastructure. A pull request can therefore show exactly what would
+happen, while making it happen still requires a person running apply.
+Automating apply would be the next step in a team with review discipline
+and a staging environment; in a one-person project it would only remove
+the last checkpoint.
