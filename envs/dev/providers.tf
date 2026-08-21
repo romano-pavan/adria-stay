@@ -5,6 +5,7 @@ provider "aws" {
       Environment = "dev"
       Project     = "adria-stay"
       ManagedBy   = "terraform"
+      Owner       = "Romano-Pavan"
     }
   }
 }
