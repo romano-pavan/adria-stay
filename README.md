@@ -4,4 +4,4 @@ Terraform built AWS infrastructure for a small hospitality business on the Croat
 
 ![Architecture diagram](docs/adria-stay-architecture.drawio.png)
 
-🚧 Work in progress — building this in public. Currently in phase 4 of 6.
+🚧 Work in progress — building this in public. Currently in phase 5 of 6.

@@ -208,3 +208,49 @@ when a file changes. For a site whose images change a few times a season
 that is not a real problem.
 
 
+## ADR-010 - What the security scan found, what I fixed, and what I refused
+
+**Date:** 2026-08-21
+
+I ran tflint for language-level linting and checkov for security policy
+across the whole repository, root modules included. Checkov returned 130
+passing checks and 40 failures, tflint returned 8 warnings. I read every
+finding rather than working down the list, because a scanner has a
+catalogue and no context, and the point of the exercise was to decide
+which findings apply to this environment.
+
+Nine got fixed. The one that matters most is enforcing IMDSv2 on the
+launch template: without it an instance answers metadata requests with no
+token, and that is the path attackers use to make an application hand
+over the temporary credentials of its own IAM role. Alongside it the root
+volume is now encrypted, the load balancer drops malformed headers, the
+database accepts IAM authentication and copies tags to its snapshots, the
+VPC's default security group is adopted and emptied so nothing can quietly
+use it, the assets bucket got versioning with a lifecycle rule so old
+versions do not accumulate forever, and CloudFront now sends AWS's managed
+security headers. tflint's warnings were all the same omission, the
+modules declared no version constraints of their own, so each one now has
+a versions.tf that states what it requires without configuring a provider,
+since providers belong to the environment that calls the module.
+
+Thirty-one findings I refused, each with an inline suppression that names
+the reason next to the resource. They fall into three groups. Some are
+already decided elsewhere: HTTPS everywhere and custom certificates need a
+domain this project does not own (ADR-005), and Multi-AZ is the trade-off
+recorded in ADR-008. Some cost real money for no benefit in an environment
+that is destroyed at the end of every session: access logs on the load
+balancer, the CDN and both buckets, enhanced monitoring and performance
+insights on the database, cross-region replication, WAF. And some do not
+apply at all: a public website is supposed to accept port 80 from the
+internet, and geo restriction would block the guests this business exists
+to serve.
+
+One finding was simply wrong. CKV_AWS_260 flagged the rule that lets the
+app instances receive traffic, claiming it opens port 80 to 0.0.0.0/0.
+That rule has no CIDR block in it. Its source is the load balancer's
+security group. The check matches on port and resource type without
+looking at where the traffic actually comes from. I left the suppression
+in place with that explanation, because the next person to run this scan
+deserves to know it was examined rather than ignored.
+
+
