@@ -4,4 +4,19 @@ Terraform built AWS infrastructure for a small hospitality business on the Croat
 
 ![Architecture diagram](docs/adria-stay-architecture.drawio.png)
 
-🚧 Work in progress — building this in public. Currently in phase 5 of 6.
+
+## How changes ship
+
+Every change goes through a pull request. GitHub Actions authenticates to
+AWS with OIDC federation. No long-lived keys are stored anywhere. 
+Runs fmt, validate, tflint, checkov and a plan, and posts the plan as a
+comment. The pipeline can read the account and lock the state, but it
+cannot change infrastructure: apply stays with a human.
+
+- Policy scanning on every pull request: 225 checks pass, none fail, and the
+  27 rules that are waived are waived in one file with the reason written
+  next to the resource each one applies to
+
+![Terraform plan posted on a pull request](docs/ci-plan-on-pr.png)
+
+
