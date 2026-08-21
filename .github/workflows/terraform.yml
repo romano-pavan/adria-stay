@@ -61,7 +61,7 @@ jobs:
       - name: Run checkov
         run: |
           pip install checkov==3.3.13
-          checkov -d . --compact --quiet
+          checkov -d . --config-file .checkov.yaml --compact --quiet
 
       - name: Terraform plan
         id: plan
