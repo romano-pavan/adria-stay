@@ -36,34 +36,34 @@ resource "aws_s3_bucket_versioning" "adria-stay" {
 }
 
 resource "aws_iam_openid_connect_provider" "github" {
-  url = "https://token.actions.githubusercontent.com"
+  url            = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
-   
+
 }
 
 data "aws_iam_policy_document" "github_assume" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
-      type = "Federated"
+      type        = "Federated"
       identifiers = [aws_iam_openid_connect_provider.github.arn]
     }
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:aud"
-      values = ["sts.amazonaws.com"]
+      values   = ["sts.amazonaws.com"]
     }
     condition {
-      test = "StringLike"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values = ["repo:romano-pavan/adria-stay:*"]
+      values   = ["repo:romano-pavan/adria-stay:*"]
     }
   }
-  
+
 }
 
 resource "aws_iam_role" "github_actions" {
-  name = "adria-stay-github-actions"
+  name               = "adria-stay-github-actions"
   assume_role_policy = data.aws_iam_policy_document.github_assume.json
   tags = {
     Name = "github-actions"
@@ -71,9 +71,9 @@ resource "aws_iam_role" "github_actions" {
 }
 
 resource "aws_iam_role_policy_attachment" "readonly" {
-  role = aws_iam_role.github_actions.name
+  role       = aws_iam_role.github_actions.name
   policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
-  
+
 }
 
 data "aws_iam_policy_document" "state_access" {
@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "state_access" {
 
 
 resource "aws_iam_role_policy" "state_access" {
-  name = "state-access"
-  role = aws_iam_role.github_actions.name
+  name   = "state-access"
+  role   = aws_iam_role.github_actions.name
   policy = data.aws_iam_policy_document.state_access.json
 }
