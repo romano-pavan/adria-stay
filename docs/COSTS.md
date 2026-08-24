@@ -6,22 +6,25 @@ bill but the cost of one session. This file records both: what the stack
 would cost left running around the clock, and what it actually costs given
 that it is torn down every time.
 
+
 All prices are eu-central-1 (Frankfurt), on-demand, and assume roughly 730
 hours in a month.
 
 ## If left running 24/7
 
+Prices are USD list rates for eu-central-1, converted to EUR at roughly current rates; the actual bill in Cost Explorer shows AWS's own conversion.
+
 | Component | Cost / month | Notes |
 |---|---|---|
-| NAT gateway | € 33 | The single largest line. Charged per hour plus per GB processed, whether or not traffic flows. |
-| Application Load Balancer | € 22 | Charged per hour plus per LCU. At dev traffic the LCU part sits near the minimum. |
-| 2 x t3.micro (EC2) | € 15 | Two instances, one per availability zone. Priced per instance-hour. |
-| RDS db.t4g.micro | € 6 | Single-AZ PostgreSQL. Instance-hour only; storage is the next row. |
-| RDS storage, 20 GB gp3 | € 5 | Priced per GB-month, independent of the instance. |
-| Public IPv4 (Elastic IP on the NAT) | € 3 | Since February 2024 every public IPv4 address is billed per hour, attached or not. |
-| CloudFront + S3 assets | € 0.5 | Data transfer out plus requests, plus a few GB-months of storage. Pennies at dev traffic. |
-| S3 state bucket | € 0.10 | The only resource that is never destroyed. State is a few KB, so this is effectively a rounding error. |
-| **Total** | **€ 85** | |
+| NAT gateway | ~€34 | The single largest line. Charged per hour plus per GB processed, whether or not traffic flows. |
+| Application Load Balancer | ~€20 | Charged per hour plus per LCU. At dev traffic the LCU part sits near the minimum. |
+| 2 x t3.micro (EC2) | ~€16 | Two instances, one per availability zone. Priced per instance-hour. |
+| RDS db.t4g.micro | ~€12 | Single-AZ PostgreSQL. Instance-hour only; storage is the next row. |
+| RDS storage, 20 GB gp3 | ~€2 | Priced per GB-month, independent of the instance. |
+| Public IPv4 (Elastic IP on the NAT) | ~€3.30 | Since February 2024 every public IPv4 address is billed per hour, attached or not. |
+| CloudFront + S3 assets | ~€0.50 | Data transfer out plus requests, plus a few GB-months of storage. Pennies at dev traffic. |
+| S3 state bucket | ~€0.10 | The only resource that is never destroyed. State is a few KB, so this is effectively a rounding error. |
+| **Total** | **~€88** | |
 
 ## What a session actually costs
 
