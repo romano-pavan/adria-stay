@@ -17,6 +17,6 @@ cannot change infrastructure: apply stays with a human.
   27 rules that are waived are waived in one file with the reason written
   next to the resource each one applies to
 
-![Terraform plan posted on a pull request](docs/ci-plan-on-pr.png)
+![The pipeline run for a pull request: fmt, validate, tflint, checkov and a plan](docs/ci-plan-on-pr.png)
 
 
